@@ -1,29 +1,38 @@
 #install.packages('httr')
 # Get the excel file and read the tab where the size column is located
+# install.packages('XLConnect')
 library('XLConnect')
 sthExcel = loadWorkbook("20170816_CH_new_15.xlsx")
 sthSizeSheet = readWorksheet(sthExcel, sheet = 2)
 
 # Get the size from sthSize
+# install.packages('gsubfn')
+# install.packages('httr')
 library('gsubfn')
 library('httr')
 numOfRowsInSthSizeSheet = nrow(sthSizeSheet)
-measurementMatrix = matrix(nrow = numOfRowsInSthSizeSheet, ncol = 4, dimnames = list(c(),c('id','name','size','subtype')) )
+measurementMatrix = matrix(nrow = numOfRowsInSthSizeSheet, ncol = 5, dimnames = list(c(),c('id','name','size','subtype','color')) )
 
 for(i in 1:numOfRowsInSthSizeSheet) {
   measurementMatrix[i,'name']<-sthSizeSheet[i,'item_name2']
   measurementMatrix[i,'size']<-sthSizeSheet[i,'item_option2']
   measurementMatrix[i,'subtype']<-sthSizeSheet[i,'SUBTYPE']
+  measurementMatrix[i,'color']<-sthSizeSheet[i,'item_option']
   # id should be fetched from shopify api
   productName <- sthSizeSheet[i,'item_name2']
-  reqQuery<-paste("{products(productParam:{fields:\"id\",title:",productName)
-  reqQuery<-paste(reqQuery,"}) {id}}")
-  res<-GET("http://localhost:3001/graphql", query=list(query=reqQuery))
-  if(exists(res)) {
-    resParsed<-content(res,"parsed")
-    measurementMatrix[i,'id']<-resParsed$data$products[[1]]$id
+  if(length(which(grepl(productName,measurementMatrix[,'name'])))>1) {
+    productIdRow<-which(grepl(productName,measurementMatrix[,'name']))[1]
+    measurementMatrix[i,'id']<-measurementMatrix[productIdRow,'id']
   } else {
-    measurementMatrix[i,'id']<-0
+    resQuery<-capture.output(cat(c("{products(productParam:{fields:\"id\",title:\"",productName,"\"}) {id}}"),sep = ""))
+    res<-GET("http://localhost:3001/graphql", query=list(query=resQuery))
+  
+    if(res$status_code == 200) {
+      resParsed<-content(res,"parsed")
+      measurementMatrix[i,'id']<-resParsed$data$products[[1]]$id
+    } else {
+      measurementMatrix[i,'id']<-0
+    }
   }
   
   extractMeasure<-strapplyc(sthSizeSheet[i,'size'], '<h3>(.*?)</h3>', simplify = c)
