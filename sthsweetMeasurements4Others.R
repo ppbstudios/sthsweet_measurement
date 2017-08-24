@@ -7,9 +7,8 @@ library('XLConnect')
 library('gsubfn')
 library('httr')
 
-sourceFiles <- dir("source/")
+sourceFiles <- dir("source4Others/")
 for (file in sourceFiles) {
-
     sthExcel = loadWorkbook(paste("source/", file, sep = "/"))
     sthSizeSheet = readWorksheet(sthExcel, sheet = 2)
     print(paste("============ Measurement Start: ", file, " ============", sep = ""))
@@ -34,7 +33,7 @@ for (file in sourceFiles) {
         } else {
             print(paste("============ Fetching ID Start: ", productName, " ============", sep = ""))
             resQuery <- capture.output(cat(c("{products(productParam:{fields:\"id\",title:\"", productName, "\"}) {id}}"), sep = ""))
-            res <- GET("http://localhost:3001/graphql", query = list(query = resQuery))
+            res <- GET("http://192.168.0.23:3001/graphql", query = list(query = resQuery))
 
             if (res$status_code == 200) {
                 resParsed <- content(res, "parsed")
@@ -44,7 +43,6 @@ for (file in sourceFiles) {
                 measurementMatrix[i, 'id'] <- 0
                 print(paste("============ Fetching ID Error End: ", productName, " ============", sep = ""))
             }
-
         }
 
         extractMeasure <- strapplyc(sthSizeSheet[i, 'size'], '<h3>(.*?)</h3>', simplify = c)
