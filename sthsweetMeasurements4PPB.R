@@ -4,12 +4,14 @@
 library('XLConnect')
 # install.packages('gsubfn')
 # install.packages('httr')
+#install.packages('xml2')
+library('jsonlite')
 library('gsubfn')
 library('httr')
 
 sourceFiles <- dir("source4PPB/")
 for (file in sourceFiles) {
-    sthExcel = loadWorkbook(paste("source/", file, sep = "/"))
+    sthExcel = loadWorkbook(paste("source4PPB/", file, sep = "/"))
     sthPPBSheet = readWorksheet(sthExcel, sheet = 2)
     print(paste("============ Measurement Start: ", file, " ============", sep = ""))
     # Get the size from sthSize
@@ -49,22 +51,18 @@ for (file in sourceFiles) {
         productHandle <- sthPPBSheet[i, 'HANDLE']
         print(paste("============ Fetching Size Start: ", productHandle, " - ", productName, " ============", sep = ""))
         resURL <- paste("http://ppbapps.com/jbkAdmin/api/product", productHandle, sep = "/")
-        res <- GET(resURL)
-        # TODO
-        if (res$status_code == 200) {
-            resParsed <- content(res, "parsed")
-            measurementMatrix[i, 'id'] <- resParsed$data$products[[1]]$id
-            print(paste("============ Fetching Size Success End: ", productHandle, " - ", productName, " ============", sep = ""))
+        res <- readLines(resURL, warn = F, encoding = "UTF-8")
+        resParsed <- fromJSON(res, simplifyVector=T)
 
-            extractMeasure <- strapplyc(resParsed$data$products[[1]]$body_html, '<h3>(.*?)</h3>', simplify = c)
-            if (length(extractMeasure)) {
+        if (resParsed$message == "success") {
+            extractMeasure <- resParsed$result$size$size_data[[1]][,2:3] #info_name(key) and size(value)
+            if (nrow(extractMeasure)) {
                 key <- c()
                 val <- c()
-                for (j in 1:length(extractMeasure)) {
+                for (j in 1:nrow(extractMeasure)) {
                     # Devide key and value between :
-                    divideStr <- unlist(strsplit(extractMeasure[j], ":"))
-                    key <- trimws(divideStr[1])
-                    val <- trimws(strsplit(trimws(divideStr[2]), split = "cm")[1])
+                    key <- trimws(extractMeasure[j,1])
+                    val <- trimws(extractMeasure[j,2])
                     # check if the key is in sizeMatrix column names
                     # if not
                     if (!(key %in% colnames(measurementMatrix))) {
@@ -77,17 +75,18 @@ for (file in sourceFiles) {
                     measurementMatrix[i, key] <- val
                 }
             }
+            print(paste("============ Fetching Size Success End: ", productHandle, " - ", productName, " ============", sep = ""))
         } else {
             print(paste("============ Fetching Size Error End: ", productHandle, " - ", productName, " ============", sep = ""))
         }
     }
 
     # create an excel file
-    destFileName <- "sthsweetMeasurements.xlsx"
+    destFileName <- "sthsweetMeasurementsPPB.xlsx"
     fileXls <- paste(getwd(), destFileName, sep = '/')
     NewXls <- loadWorkbook(fileXls, create = TRUE) # create only if the file name doesn't exist
     # supplier name
-    supplier <- resParsed$data$products[[1]]$vendor
+    supplier <- resParsed$result$product$project_no
     # check the sheet
     if (!existsSheet(NewXls, supplier)) {
         print(paste("============ Create Sheet Start: ", supplier, " ============", sep = ""))

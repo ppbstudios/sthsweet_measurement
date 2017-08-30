@@ -69,7 +69,7 @@ for (file in sourceFiles) {
     }
 
     # create an excel file
-    destFileName <- "sthsweetMeasurements.xlsx"
+    destFileName <- "sthsweetMeasurementsOthers.xlsx"
     fileXls <- paste(getwd(), destFileName, sep = '/')
     NewXls <- loadWorkbook(fileXls, create = TRUE) # create only if the file name doesn't exist
     # supplier name
