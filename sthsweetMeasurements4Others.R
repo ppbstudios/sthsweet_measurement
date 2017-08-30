@@ -9,7 +9,7 @@ library('httr')
 
 sourceFiles <- dir("source4Others/")
 for (file in sourceFiles) {
-    sthExcel = loadWorkbook(paste("source/", file, sep = "/"))
+    sthExcel = loadWorkbook(paste("source4Others/", file, sep = "/"))
     sthSizeSheet = readWorksheet(sthExcel, sheet = 2)
     print(paste("============ Measurement Start: ", file, " ============", sep = ""))
     # Get the size from sthSize
@@ -33,7 +33,7 @@ for (file in sourceFiles) {
         } else {
             print(paste("============ Fetching ID Start: ", productName, " ============", sep = ""))
             resQuery <- capture.output(cat(c("{products(productParam:{fields:\"id\",title:\"", productName, "\"}) {id}}"), sep = ""))
-            res <- GET("http://192.168.0.23:3001/graphql", query = list(query = resQuery))
+            res <- GET("http://192.168.0.23:3002/graphql", query = list(query = resQuery))
 
             if (res$status_code == 200) {
                 resParsed <- content(res, "parsed")
@@ -51,9 +51,9 @@ for (file in sourceFiles) {
             val <- c()
             for (j in 1:length(extractMeasure)) {
                 # Devide key and value between :
-                divideStr <- unlist(strsplit(extractMeasure[j], ":"))
-                key <- trimws(divideStr[1])
-                val <- trimws(strsplit(trimws(divideStr[2]), split = "cm")[1])
+                match <- regexec("-?\\s*?\\d*\\.?\\d*?\\s*cm",extractMeasure[j]) # regex patter for the value ex - 43.23 cm, 23 cm etc
+                key <- gsub(x=trimws(regmatches(extractMeasure[j],match, invert = T)[[1]][1]),pattern = ":",replacement = "") # extract the key w/o colon ex :
+                val <- strsplit(trimws(regmatches(extractMeasure[j],match, invert = F)), split = "cm")[[1]][1] # extract the value only w/o unit ex) cm
                 # check if the key is in sizeMatrix column names
                 # if not
                 if (!(key %in% colnames(measurementMatrix))) {
@@ -67,9 +67,13 @@ for (file in sourceFiles) {
             }
         }
     }
-
+    
+    # check the dist folder where the result file stored
+    if(!file.exists("dist")) {
+      dir.create("dist")
+    }
     # create an excel file
-    destFileName <- "sthsweetMeasurementsOthers.xlsx"
+    destFileName <- "dist/sthsweetMeasurementsOthers.xlsx"
     fileXls <- paste(getwd(), destFileName, sep = '/')
     NewXls <- loadWorkbook(fileXls, create = TRUE) # create only if the file name doesn't exist
     # supplier name
