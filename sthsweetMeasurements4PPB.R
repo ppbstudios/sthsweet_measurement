@@ -80,9 +80,13 @@ for (file in sourceFiles) {
             print(paste("============ Fetching Size Error End: ", productHandle, " - ", productName, " ============", sep = ""))
         }
     }
-
+    
+    # check the dist folder where the result file stored
+    if(!file.exists("dist")) {
+      dir.create("dist")
+    }
     # create an excel file
-    destFileName <- "sthsweetMeasurementsPPB.xlsx"
+    destFileName <- "dist/sthsweetMeasurementsPPB.xlsx"
     fileXls <- paste(getwd(), destFileName, sep = '/')
     NewXls <- loadWorkbook(fileXls, create = TRUE) # create only if the file name doesn't exist
     # supplier name
