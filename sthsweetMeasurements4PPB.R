@@ -35,7 +35,7 @@ for (file in sourceFiles) {
         } else {
             print(paste("============ Fetching ID Start: ", productName, " ============", sep = ""))
             resQuery <- capture.output(cat(c("{products(productParam:{fields:\"id,vendor\",title:\"", productName, "\"}) {id,vendor}}"), sep = ""))
-            res <- GET("http://192.168.0.23:3002/graphql", query = list(query = resQuery))
+            res <- GET("http://192.168.1.228:3002/graphql", query = list(query = resQuery))
 
             if (res$status_code == 200) {
                 resParsed <- content(res, "parsed")
