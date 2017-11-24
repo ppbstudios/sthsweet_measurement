@@ -8,6 +8,7 @@ library('gsubfn')
 library('httr')
 
 sourceFiles <- dir("source4Others/")
+graphqlServer <- "http://shopify.ppb.st/graphql"
 for (file in sourceFiles) {
     sthExcel = loadWorkbook(paste("source4Others/", file, sep = "/"))
     sthSizeSheet = readWorksheet(sthExcel, sheet = 2)
@@ -33,7 +34,7 @@ for (file in sourceFiles) {
         } else {
             print(paste("============ Fetching ID Start: ", productName, " ============", sep = ""))
             resQuery <- capture.output(cat(c("{products(productParam:{fields:\"id\",title:\"", productName, "\"}) {id}}"), sep = ""))
-            res <- GET("http://192.168.1.228:3002/graphql", query = list(query = resQuery))
+            res <- GET(graphqlServer, query = list(query = resQuery))
 
             if (res$status_code == 200) {
                 resParsed <- content(res, "parsed")
