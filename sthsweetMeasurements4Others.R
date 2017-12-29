@@ -15,12 +15,12 @@ for (file in sourceFiles) {
     print(paste("============ Measurement Start: ", file, " ============", sep = ""))
     # Get the size from sthSize
     numOfRowsInSthSizeSheet = nrow(sthSizeSheet)
-    measurementMatrix = matrix(nrow = numOfRowsInSthSizeSheet, ncol = 5, dimnames = list(c(), c('id', 'name', 'size', 'subtype', 'color')))
-
+    #measurementMatrix = matrix(nrow = numOfRowsInSthSizeSheet, ncol = 5, dimnames = list(c(), c('id', 'name', 'size', 'subtype', 'color')))
+    measurementMatrix = matrix(nrow = numOfRowsInSthSizeSheet, ncol = 4, dimnames = list(c(), c('id', 'name', 'subtype', 'color')))
     for (i in 1:numOfRowsInSthSizeSheet) {
         # add values
         measurementMatrix[i, 'name'] <- sthSizeSheet[i, 'item_name2']
-        measurementMatrix[i, 'size'] <- sthSizeSheet[i, 'item_option2']
+        #measurementMatrix[i, 'size'] <- sthSizeSheet[i, 'item_option2']
         measurementMatrix[i, 'subtype'] <- sthSizeSheet[i, 'SUBTYPE']
         measurementMatrix[i, 'color'] <- sthSizeSheet[i, 'item_option']
 
@@ -35,14 +35,14 @@ for (file in sourceFiles) {
             print(paste("============ Fetching ID Start: ", productName, " ============", sep = ""))
             resQuery <- capture.output(cat(c("{products(productParam:{fields:\"id\",title:\"", productName, "\"}) {id}}"), sep = ""))
             res <- GET(graphqlServer, query = list(query = resQuery))
-
-            if (res$status_code == 200) {
-                resParsed <- content(res, "parsed")
-                measurementMatrix[i, 'id'] <- resParsed$data$products[[1]]$id
-                print(paste("============ Fetching ID Success End: ", productName, " ============", sep = ""))
+            resParsed <- content(res, "parsed")
+            
+            if (res$status_code == 200 && length(resParsed$data$products)) {
+              measurementMatrix[i, 'id'] <- resParsed$data$products[[1]]$id  
+              print(paste("============ Fetching ID Success End: ", productName, " ============", sep = ""))
             } else {
-                measurementMatrix[i, 'id'] <- 0
-                print(paste("============ Fetching ID Error End: ", productName, " ============", sep = ""))
+              measurementMatrix[i, 'id'] <- 0
+              print(paste("============ Fetching ID Error End: ", productName, " ============", sep = ""))
             }
         }
 
