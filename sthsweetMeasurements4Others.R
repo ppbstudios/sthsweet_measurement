@@ -46,27 +46,27 @@ for (file in sourceFiles) {
             }
         }
 
-        extractMeasure <- strapplyc(sthSizeSheet[i, 'size'], '<h3>(.*?)</h3>', simplify = c)
-        if (length(extractMeasure)) {
-            key <- c()
-            val <- c()
-            for (j in 1:length(extractMeasure)) {
-                # Devide key and value between :
-                match <- regexec("-?\\s*?\\d*\\.?\\d*?\\s*cm",extractMeasure[j]) # regex patter for the value ex - 43.23 cm, 23 cm etc
-                key <- gsub(x=trimws(regmatches(extractMeasure[j],match, invert = T)[[1]][1]),pattern = ":",replacement = "") # extract the key w/o colon ex :
-                val <- strsplit(trimws(regmatches(extractMeasure[j],match, invert = F)), split = "cm")[[1]][1] # extract the value only w/o unit ex) cm
-                # check if the key is in sizeMatrix column names
-                # if not
-                if (!(key %in% colnames(measurementMatrix))) {
-                    # create the column and add the val on the row
-                    measurementMatrix = cbind(measurementMatrix, c(NA))
-                    # add the val on the row
-                    colnames(measurementMatrix)[ncol(measurementMatrix)] <- c(key)
-                }
-
-                measurementMatrix[i, key] <- val
-            }
-        }
+        # extractMeasure <- strapplyc(sthSizeSheet[i, 'size'], '<h3>(.*?)</h3>', simplify = c)
+        # if (length(extractMeasure)) {
+        #     key <- c()
+        #     val <- c()
+        #     for (j in 1:length(extractMeasure)) {
+        #         # Devide key and value between :
+        #         match <- regexec("-?\\s*?\\d*\\.?\\d*?\\s*cm",extractMeasure[j]) # regex patter for the value ex - 43.23 cm, 23 cm etc
+        #         key <- gsub(x=trimws(regmatches(extractMeasure[j],match, invert = T)[[1]][1]),pattern = ":",replacement = "") # extract the key w/o colon ex :
+        #         val <- strsplit(trimws(regmatches(extractMeasure[j],match, invert = F)), split = "cm")[[1]][1] # extract the value only w/o unit ex) cm
+        #         # check if the key is in sizeMatrix column names
+        #         # if not
+        #         if (!(key %in% colnames(measurementMatrix))) {
+        #             # create the column and add the val on the row
+        #             measurementMatrix = cbind(measurementMatrix, c(NA))
+        #             # add the val on the row
+        #             colnames(measurementMatrix)[ncol(measurementMatrix)] <- c(key)
+        #         }
+        # 
+        #         measurementMatrix[i, key] <- val
+        #     }
+        # }
     }
     
     # check the dist folder where the result file stored
